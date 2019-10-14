@@ -226,12 +226,19 @@ class Site(SiteCompatibilityLayer):
             shutil.rmtree(self.build_path)
 
     def static_process(self):
+        logger.debug("*** BUILD STATIC %s", self.path)
+
+        self._static = None
+        self._static_resources_dict = None
+        self.plugin_manager.reload()
+
         self.plugin_manager.preBuild(self)
         logger.debug('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
+        self.buildStatic()
 
         self.plugin_manager.postBuild(self)
+        build_static_path = os.path.join(self.build_path, "static")
 
-        self.buildStatic()
 
         for static in self.static():
             if os.path.isdir(static.pre_dir):
@@ -462,7 +469,7 @@ class Site(SiteCompatibilityLayer):
         """
         Start a http server and rebuild on changes.
         """
-        self._parallel = PARALLEL_DISABLED
+        self._parallel = PARALLEL_AGGRESSIVE
         self._port = port
 
         self.clean()
