@@ -1,3 +1,4 @@
+import fnmatch
 import os
 import sys
 import shutil
@@ -52,7 +53,7 @@ class Site(SiteCompatibilityLayer):
         if config_paths is None:
             config_paths = []
         self.config = ConfigRouter(config_paths)
-
+        self.ignore = self.config.get('ignore', [])
         # Load site-specific config values
         self.prettify_urls = self.config.get('prettify', False)
         self.compress_extensions = self.config.get('compress', ['html', 'css', 'js', 'txt', 'xml'])
@@ -292,6 +293,8 @@ class Site(SiteCompatibilityLayer):
             for path in fileList(self.static_path, relative=True):
 
                 full_path = os.path.join(self.static_path, path)
+                if self._ignore(path):
+                    continue
 
                 if os.path.islink(full_path):
                     if not os.path.exists(os.path.realpath(full_path)):
@@ -301,6 +304,13 @@ class Site(SiteCompatibilityLayer):
                 self._static.append(Static(self, path))
 
         return self._static
+
+    def _ignore(self, path):
+        for pattern in self.ignore:
+            if fnmatch.fnmatch(path, pattern):
+                logger.warning("Skipping ignored file:\n%s", path)
+                return True
+
 
     def static_resources_dict(self):
         """
