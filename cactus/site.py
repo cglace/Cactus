@@ -309,7 +309,7 @@ class Site(SiteCompatibilityLayer):
     def _ignore(self, path):
         for pattern in self.ignore:
             if fnmatch.fnmatch(path, pattern):
-                logger.warning("Skipping ignored file:\n%s", path)
+                logger.warning("Skipping ignored file: %s", path)
                 return True
 
 
