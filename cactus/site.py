@@ -427,7 +427,6 @@ class Site(SiteCompatibilityLayer):
         # like coffeescript and less don't trigger the listener again immediately.
         self.listener.pause()
         changed_file_extension = set(map(lambda x: os.path.splitext(x)[1], changes["changed"]))
-        print changed_file_extension
         try:
             #TODO: Fix this.
             #TODO: The static files should handle collection of their static folder on their own
