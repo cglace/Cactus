@@ -286,6 +286,7 @@ class Site(SiteCompatibilityLayer):
         """
         Retrieve a list of static files for the site
         """
+        logger.debug("this is from the gitlab repo")
         if self._static is None:
 
             self._static = []
