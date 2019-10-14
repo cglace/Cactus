@@ -44,7 +44,6 @@ class ConfigRouter(object):
     def _get_first(self, key, default=None):
         for config in self.configs:
             if config.has_key(key):
-                logger.debug("Retrieved %s from %s", key, config.path)
                 return config.get(key)
 
         return default
@@ -54,7 +53,6 @@ class ConfigRouter(object):
         Retrieve a config key from the first config that has it.
         Return default if no config has it.
         """
-        logger.debug("Searching for %s (nested:%s)", key, nested)
         if nested:
             return self._get_nested(key, default)
         else:
