@@ -225,6 +225,18 @@ class Site(SiteCompatibilityLayer):
         if os.path.isdir(self.build_path):
             shutil.rmtree(self.build_path)
 
+    def static_process(self):
+        self.plugin_manager.preBuild(self)
+        logger.debug('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
+
+        self.plugin_manager.postBuild(self)
+
+        self.buildStatic()
+
+        for static in self.static():
+            if os.path.isdir(static.pre_dir):
+                shutil.rmtree(static.pre_dir)
+
     def build(self):
         """
         Generate fresh site from templates.
@@ -408,7 +420,8 @@ class Site(SiteCompatibilityLayer):
         # We will pause the listener while building so scripts that alter the output
         # like coffeescript and less don't trigger the listener again immediately.
         self.listener.pause()
-
+        changed_file_extension = set(map(lambda x: os.path.splitext(x)[1], changes["changed"]))
+        print changed_file_extension
         try:
             #TODO: Fix this.
             #TODO: The static files should handle collection of their static folder on their own
@@ -424,7 +437,6 @@ class Site(SiteCompatibilityLayer):
             logger.info('*** Error while building\n%s', e)
             traceback.print_exc(file=sys.stdout)
 
-        changed_file_extension = set(map(lambda x: os.path.splitext(x)[1], changes["changed"]))
         reload_css_file_extenstions = set([".css", ".sass", ".scss", ".styl"])
 
         # When we have changes, we want to refresh the browser tabs with the updates.
