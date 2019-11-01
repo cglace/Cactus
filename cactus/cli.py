@@ -8,8 +8,7 @@ import socket
 import subprocess
 import threading
 
-from blinker import signal
-from utils.ipc import sig
+from utils.ipc import sig as process_sig
 from six.moves import input
 import colorama
 
@@ -68,15 +67,17 @@ class CactusCli(object):
         site = self.Site(path, config)
         site.serve(port=port, browser=browser)
 
-    def test(self, path, config, port, browser):
-        serve = threading.Thread(target=self.serve, args=(path, config, port, browser), daemon=True)
-        data = dict(started=False)
+    def test(self, path, config):
+        serve = threading.Thread(target=self.serve, args=(path, config, 8000, None))
+        serve.daemon = True
 
+        data = dict(started=False, failed=False)
         def server_started(sender):
             if sender == 'server.didstart':
                 data['started'] = True
 
-        signal.connect(server_started)
+        process_sig.connect(server_started)
+        serve.start()
 
         def test_func(data):
             while 1:
@@ -85,14 +86,22 @@ class CactusCli(object):
                 else:
                     break
 
-            subprocess.call([
-                'test',
-            ])
+            try:
+                subprocess.check_output([
+                    '{}/test.sh'.format(path),
+                ])
+            except Exception, e:
+                print e
+                data['failed'] = True
+
             return
 
-        serve.start()
         test = threading.Thread(target=test_func, args=[data])
+        test.start()
         test.join()
+
+        if data['failed']:
+            raise Exception("Tests Failed!")
 
     def domain_setup(self, path, config):
         site = self.Site(path, config)
@@ -112,8 +121,8 @@ def parse_arguments(cli, args):
                                        help='Select a command to run.', dest='command')
     subparsers.required = True
 
-    parser_create = subparsers.add_parser('test', help='Create a new project')
-    parser_create.set_defaults(target=cli.test)
+    parser_test = subparsers.add_parser('test', help='Test Project')
+    parser_test.set_defaults(target=cli.test)
 
     parser_create = subparsers.add_parser('create', help='Create a new project')
     parser_create.add_argument('path', help='The path where the new project should be created')
@@ -141,7 +150,7 @@ def parse_arguments(cli, args):
     parser_domain_list.set_defaults(target=cli.domain_list)
 
 
-    config_parsers = [parser_build, parser_deploy, parser_serve, parser_make_messages, parser_domain_setup, parser_domain_list]
+    config_parsers = [parser_build, parser_deploy, parser_serve, parser_test, parser_make_messages, parser_domain_setup, parser_domain_list]
     all_parsers = config_parsers + [parser_create]
 
     for subparser in config_parsers:
