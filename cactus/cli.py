@@ -112,6 +112,9 @@ def parse_arguments(cli, args):
                                        help='Select a command to run.', dest='command')
     subparsers.required = True
 
+    parser_create = subparsers.add_parser('test', help='Create a new project')
+    parser_create.set_defaults(target=cli.test)
+
     parser_create = subparsers.add_parser('create', help='Create a new project')
     parser_create.add_argument('path', help='The path where the new project should be created')
     parser_create.add_argument('-s', '--skeleton', help='An archive to use as skeleton to create the new project')
