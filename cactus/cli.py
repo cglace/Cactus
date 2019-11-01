@@ -5,7 +5,11 @@ import sys
 import time
 import argparse
 import socket
+import subprocess
+import threading
 
+from blinker import signal
+from utils.ipc import sig
 from six.moves import input
 import colorama
 
@@ -63,6 +67,32 @@ class CactusCli(object):
         """Serve the project and watch changes"""
         site = self.Site(path, config)
         site.serve(port=port, browser=browser)
+
+    def test(self, path, config, port, browser):
+        serve = threading.Thread(target=self.serve, args=(path, config, port, browser), daemon=True)
+        data = dict(started=False)
+
+        def server_started(sender):
+            if sender == 'server.didstart':
+                data['started'] = True
+
+        signal.connect(server_started)
+
+        def test_func(data):
+            while 1:
+                if not data.get('started'):
+                    time.sleep(1)
+                else:
+                    break
+
+            subprocess.call([
+                'test',
+            ])
+            return
+
+        serve.start()
+        test = threading.Thread(target=test_func, args=[data])
+        test.join()
 
     def domain_setup(self, path, config):
         site = self.Site(path, config)

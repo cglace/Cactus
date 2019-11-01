@@ -1,13 +1,15 @@
 import os
 import logging
+from blinker import signal as blinker_sig
 
+sig = blinker_sig()
 
 def signal(signal, data=None):
     if data is None:
         data = {}
 
-    if not os.environ.get('DESKTOPAPP'):
-        return
-
+    #if not os.environ.get('DESKTOPAPP'):
+    #    return
+    sig.send(signal)
     data["signal"] = signal
     logging.warning("", data)
