@@ -73,7 +73,7 @@ class CactusCli(object):
 
         data = dict(started=False, failed=False)
         def server_started(sender):
-            if sender == 'server.didstart':
+            if sender == 'server.started':
                 data['started'] = True
 
         process_sig.connect(server_started)
@@ -82,10 +82,11 @@ class CactusCli(object):
         def test_func(data):
             while 1:
                 if not data.get('started'):
-                    time.sleep(1)
+                    time.sleep(.5)
                 else:
                     break
 
+            time.sleep(3)
             try:
                 subprocess.check_output([
                     '{}/test.sh'.format(path),
@@ -165,7 +166,7 @@ def parse_arguments(cli, args):
         verbosity_group.add_argument('-q', '--quiet', action='store_true', help='Be quieter')
 
     ns = parser.parse_args(args)
-
+    print ns
     # Small hack to provide a default value while not replacing what's
     # given by the user, if there is
     if hasattr(ns, 'config') and ns.config is None:  # We don't need config for create

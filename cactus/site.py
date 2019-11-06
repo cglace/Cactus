@@ -484,6 +484,7 @@ class Site(SiteCompatibilityLayer):
         self.server = WebServer(self.build_path, port=port)
 
         try:
+            ipc.signal("server.started")
             self.server.start()
 
             # if browser is True:
