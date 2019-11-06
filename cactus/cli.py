@@ -68,6 +68,7 @@ class CactusCli(object):
         site.serve(port=port, browser=browser)
 
     def test(self, path, config):
+        os.environ["FETCH_ENV"] = "staging"
         serve = threading.Thread(target=self.serve, args=(path, config, 8000, None))
         serve.daemon = True
 
